@@ -167,10 +167,6 @@ export default function GameCanvas({
     [resetTouchInput],
   );
 
-  const handleTouchPause = useCallback(() => {
-    engineRef.current?.togglePause();
-  }, []);
-
   return (
     <div className="game-canvas-shell">
       <div className="canvas-frame">
@@ -202,14 +198,6 @@ export default function GameCanvas({
               />
             </div>
           </div>
-
-          <button
-            className="touch-pause-button"
-            type="button"
-            onClick={handleTouchPause}
-          >
-            일시정지
-          </button>
         </div>
       )}
     </div>

@@ -34,7 +34,7 @@ const initialHud = {
   isUpgradePaused: false,
   isPaused: false,
   enemyRoster: ['씨앗도깨비'],
-  dangerLabel: '워밍업',
+  dangerLabel: '위험',
 };
 
 function FlowPanel({ hud }) {
@@ -69,18 +69,12 @@ function FlowPanel({ hud }) {
           <div className="support-metric-grid">
             <div className="support-metric-card">
               <span className="support-metric-label">현재 압박</span>
-              <strong className="support-metric-value">
-                적 {hud.enemiesRemaining}
-              </strong>
-              <span className="support-metric-meta">
-                탄환 {hud.projectilesInAir}
-              </span>
+              <strong className="support-metric-value">적 {hud.enemiesRemaining}</strong>
+              <span className="support-metric-meta">탄환 {hud.projectilesInAir}</span>
             </div>
             <div className="support-metric-card">
               <span className="support-metric-label">회복까지</span>
-              <strong className="support-metric-value">
-                {hud.killsToNextHeal}
-              </strong>
+              <strong className="support-metric-value">{hud.killsToNextHeal}</strong>
               <span className="support-metric-meta">처치 필요</span>
             </div>
             <div className="support-metric-card">
@@ -114,54 +108,28 @@ function BuildPanel({ hud, includeEnemies = false }) {
       <div className="build-mini-grid build-mini-grid-side">
         <div className="build-mini-item">
           <span className="build-mini-label">공격속도</span>
-          <strong className="build-mini-value">
-            {hud.attackSpeed.toFixed(2)}회/초
-          </strong>
-          <span className="build-mini-meta">
-            강화 +{hud.upgradeLevels.attackSpeed}
-          </span>
+          <strong className="build-mini-value">{hud.attackSpeed.toFixed(2)}회/초</strong>
+          <span className="build-mini-meta">강화 +{hud.upgradeLevels.attackSpeed}</span>
         </div>
         <div className="build-mini-item">
           <span className="build-mini-label">공격력</span>
           <strong className="build-mini-value">{hud.attackDamage}</strong>
-          <span className="build-mini-meta">
-            강화 +{hud.upgradeLevels.attackDamage}
-          </span>
+          <span className="build-mini-meta">강화 +{hud.upgradeLevels.attackDamage}</span>
         </div>
         <div className="build-mini-item">
           <span className="build-mini-label">공격범위</span>
           <strong className="build-mini-value">{hud.attackRadius}</strong>
-          <span className="build-mini-meta">
-            강화 +{hud.upgradeLevels.attackRadius}
-          </span>
+          <span className="build-mini-meta">강화 +{hud.upgradeLevels.attackRadius}</span>
         </div>
         <div className="build-mini-item">
           <span className="build-mini-label">사정거리</span>
           <strong className="build-mini-value">{hud.attackReach}</strong>
-          <span className="build-mini-meta">
-            강화 +{hud.upgradeLevels.attackReach}
-          </span>
+          <span className="build-mini-meta">강화 +{hud.upgradeLevels.attackReach}</span>
         </div>
       </div>
 
-      {includeEnemies && (
-        <div className="mobile-build-roster">
-          <div className="support-header support-header-subtle">
-            <h3>등장 적</h3>
-          </div>
-
-          <div className="support-chip-row support-chip-column">
-            {hud.enemyRoster.map((label) => (
-              <span key={label} className="support-chip">
-                {label}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {!includeEnemies && (
-        <div className="desktop-build-roster">
+      {(includeEnemies || !includeEnemies) && (
+        <div className={includeEnemies ? 'mobile-build-roster' : 'desktop-build-roster'}>
           <div className="support-header support-header-subtle">
             <h3>등장 적</h3>
           </div>
@@ -236,76 +204,79 @@ export default function GameScreen({
   }, [onBossWaveChange]);
 
   return (
-    <main className="play-card play-card-layout">
-      <div className="play-stage-layout">
-        <aside className="play-side-column play-side-column-desktop">
-          <Hud
-            hud={hud}
-            onPauseToggle={handlePauseToggle}
-            pauseDisabled={Boolean(upgradePrompt)}
-          />
-          <FlowPanel hud={hud} />
-        </aside>
+    <>
+      <button
+        className="play-pause-button"
+        type="button"
+        onClick={handlePauseToggle}
+        disabled={Boolean(upgradePrompt)}
+      >
+        {hud.isPaused ? '계속하기' : '일시정지'}
+      </button>
 
-        <section className="play-center-column">
-          <div className="mobile-hud">
-            <Hud
-              hud={hud}
-              onPauseToggle={handlePauseToggle}
-              pauseDisabled={Boolean(upgradePrompt)}
+      <main className="play-card play-card-layout">
+        <div className="play-stage-layout">
+          <aside className="play-side-column play-side-column-desktop">
+            <Hud hud={hud} />
+            <FlowPanel hud={hud} />
+          </aside>
+
+          <section className="play-center-column">
+            <div className="mobile-hud">
+              <Hud hud={hud} />
+            </div>
+
+            <GameCanvas
+              onStateChange={setHud}
+              onGameOver={handleGameOver}
+              onHit={onHit}
+              onUpgradePrompt={handleUpgradePrompt}
+              onReady={handleEngineReady}
             />
-          </div>
 
-          <GameCanvas
-            onStateChange={setHud}
-            onGameOver={handleGameOver}
-            onHit={onHit}
-            onUpgradePrompt={handleUpgradePrompt}
-            onReady={handleEngineReady}
-          />
+            <section className="mobile-info-dock">
+              <div className="mobile-info-tabs">
+                <button
+                  className={`mobile-info-tab${mobilePanel === 'flow' ? ' is-active' : ''}`}
+                  type="button"
+                  onClick={() => setMobilePanel('flow')}
+                >
+                  스테이지
+                </button>
+                <button
+                  className={`mobile-info-tab${mobilePanel === 'build' ? ' is-active' : ''}`}
+                  type="button"
+                  onClick={() => setMobilePanel('build')}
+                >
+                  빌드
+                </button>
+              </div>
 
-          <section className="mobile-info-dock">
-            <div className="mobile-info-tabs">
-              <button
-                className={`mobile-info-tab${mobilePanel === 'flow' ? ' is-active' : ''}`}
-                type="button"
-                onClick={() => setMobilePanel('flow')}
-              >
-                스테이지
-              </button>
-              <button
-                className={`mobile-info-tab${mobilePanel === 'build' ? ' is-active' : ''}`}
-                type="button"
-                onClick={() => setMobilePanel('build')}
-              >
-                빌드
-              </button>
-            </div>
-
-            <div className="mobile-info-panel">
-              {mobilePanel === 'flow' ? (
-                <FlowPanel hud={hud} />
-              ) : (
-                <BuildPanel hud={hud} includeEnemies />
-              )}
-            </div>
+              <div className="mobile-info-panel">
+                {mobilePanel === 'flow' ? (
+                  <FlowPanel hud={hud} />
+                ) : (
+                  <BuildPanel hud={hud} includeEnemies />
+                )}
+              </div>
+            </section>
           </section>
-        </section>
 
-        <aside className="play-side-column play-side-column-desktop">
-          <BuildPanel hud={hud} />
-        </aside>
-      </div>
+          <aside className="play-side-column play-side-column-desktop">
+            <BuildPanel hud={hud} />
+          </aside>
+        </div>
 
-      {upgradePrompt && (
-        <UpgradeOverlay prompt={upgradePrompt} onSelect={handleUpgradeSelect} />
-      )}
-      {showPauseOverlay && (
-        <PauseOverlay
-          onResume={handleResume}
-          onBackToTitle={onBackToTitle}
-        />
-      )}
-    </main>
+        {upgradePrompt && (
+          <UpgradeOverlay prompt={upgradePrompt} onSelect={handleUpgradeSelect} />
+        )}
+        {showPauseOverlay && (
+          <PauseOverlay
+            onResume={handleResume}
+            onBackToTitle={onBackToTitle}
+          />
+        )}
+      </main>
+    </>
   );
 }

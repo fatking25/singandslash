@@ -1,6 +1,6 @@
 import { formatDuration } from '../game/format.js';
 
-export default function Hud({ hud, onPauseToggle, pauseDisabled }) {
+export default function Hud({ hud }) {
   const hpRate = `${(hud.hp / hud.maxHp) * 100}%`;
 
   let subtitle = '';
@@ -21,15 +21,6 @@ export default function Hud({ hud, onPauseToggle, pauseDisabled }) {
             {subtitle ? <p className="hud-subtitle">{subtitle}</p> : null}
           </div>
         </div>
-
-        <button
-          className="hud-menu-button"
-          type="button"
-          onClick={onPauseToggle}
-          disabled={pauseDisabled}
-        >
-          {hud.isPaused ? '계속하기' : '일시정지'}
-        </button>
       </div>
 
       <div className="hud-stat-strip">
