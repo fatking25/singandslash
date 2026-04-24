@@ -724,17 +724,27 @@ button {
 }
 
 .touch-ui {
+  display: grid;
+  gap: 12px;
+}
+
+.touch-ui-header {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
 .touch-joystick-wrap {
   display: grid;
   gap: 8px;
+  width: fit-content;
   pointer-events: auto;
+}
+
+.touch-ui-right .touch-joystick-wrap {
+  justify-self: end;
 }
 
 .touch-badge {
@@ -747,6 +757,38 @@ button {
   font-size: 0.82rem;
   font-weight: 700;
   backdrop-filter: blur(8px);
+}
+
+.touch-hand-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(255, 244, 216, 0.12);
+  border-radius: 999px;
+  background: rgba(13, 21, 16, 0.64);
+  backdrop-filter: blur(8px);
+}
+
+.touch-hand-button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 240, 207, 0.72);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.touch-hand-button.is-active {
+  background: linear-gradient(180deg, rgba(255, 213, 120, 0.94), rgba(255, 143, 55, 0.92));
+  color: #211208;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
 .touch-joystick {
@@ -1280,6 +1322,16 @@ button {
 
   .touch-ui {
     align-items: stretch;
+  }
+
+  .touch-ui-header {
+    align-items: flex-start;
+  }
+
+  .touch-hand-button {
+    min-height: 30px;
+    padding: 0 11px;
+    font-size: 0.74rem;
   }
 
   .touch-joystick {

@@ -1,5 +1,7 @@
 import { LOCAL_STORAGE_KEY } from './constants.js';
 
+const TOUCH_HAND_STORAGE_KEY = 'gyulablo-touch-hand';
+
 function normalizeRecord(record) {
   if (!record || typeof record !== 'object') {
     return null;
@@ -22,6 +24,10 @@ function normalizeRecord(record) {
     kills: Math.max(0, Math.floor(kills)),
     survivedMs: Math.max(0, Math.floor(survivedMs)),
   };
+}
+
+function normalizeTouchHand(value) {
+  return value === 'right' ? 'right' : 'left';
 }
 
 export function loadBestRecord() {
@@ -54,6 +60,29 @@ export function saveBestRecord(record) {
   }
 
   window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(normalized));
+}
+
+export function loadTouchHandPreference() {
+  if (typeof window === 'undefined') {
+    return 'left';
+  }
+
+  try {
+    return normalizeTouchHand(window.localStorage.getItem(TOUCH_HAND_STORAGE_KEY));
+  } catch {
+    return 'left';
+  }
+}
+
+export function saveTouchHandPreference(value) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(
+    TOUCH_HAND_STORAGE_KEY,
+    normalizeTouchHand(value),
+  );
 }
 
 export function isBetterRecord(nextRecord, currentRecord) {

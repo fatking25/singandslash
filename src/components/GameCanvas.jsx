@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GAME_HEIGHT, GAME_WIDTH } from '../game/constants.js';
+import {
+  loadTouchHandPreference,
+  saveTouchHandPreference,
+} from '../game/storage.js';
 import { GameEngine } from '../game/engine.js';
 
 const idleJoystick = {
@@ -28,6 +32,7 @@ export default function GameCanvas({
   });
   const [showTouchControls, setShowTouchControls] = useState(false);
   const [joystick, setJoystick] = useState(idleJoystick);
+  const [touchHand, setTouchHand] = useState(() => loadTouchHandPreference());
 
   useEffect(() => {
     callbacksRef.current = {
@@ -167,6 +172,15 @@ export default function GameCanvas({
     [resetTouchInput],
   );
 
+  const handleTouchHandChange = useCallback(
+    (nextHand) => {
+      setTouchHand(nextHand);
+      saveTouchHandPreference(nextHand);
+      resetTouchInput();
+    },
+    [resetTouchInput],
+  );
+
   return (
     <div className="game-canvas-shell">
       <div className="canvas-frame">
@@ -179,9 +193,30 @@ export default function GameCanvas({
       </div>
 
       {showTouchControls && (
-        <div className="touch-ui">
+        <div className={`touch-ui touch-ui-${touchHand}`}>
+          <div className="touch-ui-header">
+            <div className="touch-badge">DRAG TO MOVE</div>
+            <div className="touch-hand-toggle" role="group" aria-label="Joystick side">
+              <button
+                type="button"
+                className={`touch-hand-button${touchHand === 'left' ? ' is-active' : ''}`}
+                onClick={() => handleTouchHandChange('left')}
+                aria-pressed={touchHand === 'left'}
+              >
+                LEFT
+              </button>
+              <button
+                type="button"
+                className={`touch-hand-button${touchHand === 'right' ? ' is-active' : ''}`}
+                onClick={() => handleTouchHandChange('right')}
+                aria-pressed={touchHand === 'right'}
+              >
+                RIGHT
+              </button>
+            </div>
+          </div>
+
           <div className="touch-joystick-wrap">
-            <div className="touch-badge">드래그로 이동</div>
             <div
               ref={joystickRef}
               className={`touch-joystick${joystick.active ? ' is-active' : ''}`}
