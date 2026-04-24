@@ -172,13 +172,15 @@ export default function GameCanvas({
   }, []);
 
   return (
-    <div className="canvas-frame">
-      <canvas
-        ref={canvasRef}
-        className="game-canvas"
-        width={GAME_WIDTH}
-        height={GAME_HEIGHT}
-      />
+    <div className="game-canvas-shell">
+      <div className="canvas-frame">
+        <canvas
+          ref={canvasRef}
+          className="game-canvas"
+          width={GAME_WIDTH}
+          height={GAME_HEIGHT}
+        />
+      </div>
 
       {showTouchControls && (
         <div className="touch-ui">
