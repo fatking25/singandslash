@@ -37,6 +37,148 @@ const initialHud = {
   dangerLabel: '워밍업',
 };
 
+function FlowPanel({ hud }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <section
+      className={`support-panel support-panel-emphasis${isExpanded ? '' : ' support-panel-collapsed'}`}
+    >
+      <div className="support-header">
+        <div className="support-heading-inline">
+          <h3>스테이지 정보</h3>
+        </div>
+        <button
+          className={`support-toggle-button${isExpanded ? ' is-open' : ''}`}
+          type="button"
+          onClick={() => setIsExpanded((value) => !value)}
+          aria-expanded={isExpanded}
+        >
+          {isExpanded ? '접기' : '펼치기'}
+        </button>
+      </div>
+
+      {isExpanded && (
+        <>
+          <p className="support-copy support-copy-compact">
+            {hud.bossName
+              ? `${hud.bossName}: ${hud.bossPatternText}`
+              : '적을 흘리듯 피하면서 강화 타이밍까지 버티는 것이 핵심입니다.'}
+          </p>
+
+          <div className="support-metric-grid">
+            <div className="support-metric-card">
+              <span className="support-metric-label">현재 압박</span>
+              <strong className="support-metric-value">
+                적 {hud.enemiesRemaining}
+              </strong>
+              <span className="support-metric-meta">
+                탄환 {hud.projectilesInAir}
+              </span>
+            </div>
+            <div className="support-metric-card">
+              <span className="support-metric-label">회복까지</span>
+              <strong className="support-metric-value">
+                {hud.killsToNextHeal}
+              </strong>
+              <span className="support-metric-meta">처치 필요</span>
+            </div>
+            <div className="support-metric-card">
+              <span className="support-metric-label">다음 강화</span>
+              <strong className="support-metric-value">
+                {hud.nextUpgradeWave ? `${hud.nextUpgradeWave}W` : '완료'}
+              </strong>
+              <span className="support-metric-meta">진입 시 선택</span>
+            </div>
+            <div className="support-metric-card">
+              <span className="support-metric-label">다음 보스</span>
+              <strong className="support-metric-value">
+                {hud.nextBossWave ? `${hud.nextBossWave}W` : '격파'}
+              </strong>
+              <span className="support-metric-meta">결전 준비</span>
+            </div>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+function BuildPanel({ hud, includeEnemies = false }) {
+  return (
+    <section className="support-panel">
+      <div className="support-header">
+        <h3>빌드 요약</h3>
+      </div>
+
+      <div className="build-mini-grid build-mini-grid-side">
+        <div className="build-mini-item">
+          <span className="build-mini-label">공격속도</span>
+          <strong className="build-mini-value">
+            {hud.attackSpeed.toFixed(2)}회/초
+          </strong>
+          <span className="build-mini-meta">
+            강화 +{hud.upgradeLevels.attackSpeed}
+          </span>
+        </div>
+        <div className="build-mini-item">
+          <span className="build-mini-label">공격력</span>
+          <strong className="build-mini-value">{hud.attackDamage}</strong>
+          <span className="build-mini-meta">
+            강화 +{hud.upgradeLevels.attackDamage}
+          </span>
+        </div>
+        <div className="build-mini-item">
+          <span className="build-mini-label">공격범위</span>
+          <strong className="build-mini-value">{hud.attackRadius}</strong>
+          <span className="build-mini-meta">
+            강화 +{hud.upgradeLevels.attackRadius}
+          </span>
+        </div>
+        <div className="build-mini-item">
+          <span className="build-mini-label">사정거리</span>
+          <strong className="build-mini-value">{hud.attackReach}</strong>
+          <span className="build-mini-meta">
+            강화 +{hud.upgradeLevels.attackReach}
+          </span>
+        </div>
+      </div>
+
+      {includeEnemies && (
+        <div className="mobile-build-roster">
+          <div className="support-header support-header-subtle">
+            <h3>등장 적</h3>
+          </div>
+
+          <div className="support-chip-row support-chip-column">
+            {hud.enemyRoster.map((label) => (
+              <span key={label} className="support-chip">
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!includeEnemies && (
+        <div className="desktop-build-roster">
+          <div className="support-header support-header-subtle">
+            <h3>등장 적</h3>
+          </div>
+
+          <div className="support-chip-row support-chip-column">
+            {hud.enemyRoster.map((label) => (
+              <span key={label} className="support-chip">
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function GameScreen({
   onGameOver,
   onHit,
@@ -45,6 +187,7 @@ export default function GameScreen({
 }) {
   const [hud, setHud] = useState(initialHud);
   const [upgradePrompt, setUpgradePrompt] = useState(null);
+  const [mobilePanel, setMobilePanel] = useState('flow');
   const engineRef = useRef(null);
 
   const handleUpgradePrompt = useCallback((prompt) => {
@@ -93,14 +236,26 @@ export default function GameScreen({
   }, [onBossWaveChange]);
 
   return (
-    <main className="play-card">
-      <div className="play-layout">
-        <section className="play-main">
+    <main className="play-card play-card-layout">
+      <div className="play-stage-layout">
+        <aside className="play-side-column play-side-column-desktop">
           <Hud
             hud={hud}
             onPauseToggle={handlePauseToggle}
             pauseDisabled={Boolean(upgradePrompt)}
           />
+          <FlowPanel hud={hud} />
+        </aside>
+
+        <section className="play-center-column">
+          <div className="mobile-hud">
+            <Hud
+              hud={hud}
+              onPauseToggle={handlePauseToggle}
+              pauseDisabled={Boolean(upgradePrompt)}
+            />
+          </div>
+
           <GameCanvas
             onStateChange={setHud}
             onGameOver={handleGameOver}
@@ -108,78 +263,37 @@ export default function GameScreen({
             onUpgradePrompt={handleUpgradePrompt}
             onReady={handleEngineReady}
           />
+
+          <section className="mobile-info-dock">
+            <div className="mobile-info-tabs">
+              <button
+                className={`mobile-info-tab${mobilePanel === 'flow' ? ' is-active' : ''}`}
+                type="button"
+                onClick={() => setMobilePanel('flow')}
+              >
+                스테이지
+              </button>
+              <button
+                className={`mobile-info-tab${mobilePanel === 'build' ? ' is-active' : ''}`}
+                type="button"
+                onClick={() => setMobilePanel('build')}
+              >
+                빌드
+              </button>
+            </div>
+
+            <div className="mobile-info-panel">
+              {mobilePanel === 'flow' ? (
+                <FlowPanel hud={hud} />
+              ) : (
+                <BuildPanel hud={hud} includeEnemies />
+              )}
+            </div>
+          </section>
         </section>
 
-        <aside className="side-panel">
-          <section className="side-section side-section-emphasis">
-            <div className="section-row">
-              <h3>상태창</h3>
-              <span className="danger-chip">{hud.dangerLabel}</span>
-            </div>
-
-            <p>
-              {hud.bossName
-                ? `${hud.bossName}: ${hud.bossPatternText}`
-                : '웨이브가 오를수록 적이 더 빠르고 거칠게 몰려옵니다.'}
-            </p>
-
-            <div className="roster-wrap">
-              {hud.enemyRoster.map((label) => (
-                <span key={label} className="roster-chip">
-                  {label}
-                </span>
-              ))}
-            </div>
-
-            <ul>
-              <li>
-                현재 압박: 적 {hud.enemiesRemaining}기 / 탄환 {hud.projectilesInAir}개
-              </li>
-              <li>다음 회복까지: {hud.killsToNextHeal} 처치</li>
-              <li>
-                다음 강화:{' '}
-                {hud.nextUpgradeWave
-                  ? `${hud.nextUpgradeWave}웨이브 진입 전`
-                  : '모든 강화 획득'}
-              </li>
-              <li>
-                다음 보스:{' '}
-                {hud.nextBossWave
-                  ? `${hud.nextBossWave}웨이브`
-                  : '최종보스 돌파 완료'}
-              </li>
-            </ul>
-          </section>
-
-          <section className="side-section">
-            <h3>자동공격 빌드</h3>
-
-            <div className="side-stat-grid">
-              <div className="side-stat">
-                <span>공격속도</span>
-                <strong>{hud.attackSpeed.toFixed(2)}회/초</strong>
-              </div>
-              <div className="side-stat">
-                <span>공격력</span>
-                <strong>{hud.attackDamage}</strong>
-              </div>
-              <div className="side-stat">
-                <span>공격범위</span>
-                <strong>{hud.attackRadius}</strong>
-              </div>
-              <div className="side-stat">
-                <span>공격사정거리</span>
-                <strong>{hud.attackReach}</strong>
-              </div>
-            </div>
-
-            <div className="upgrade-levels">
-              <span>공속 +{hud.upgradeLevels.attackSpeed}</span>
-              <span>공격력 +{hud.upgradeLevels.attackDamage}</span>
-              <span>범위 +{hud.upgradeLevels.attackRadius}</span>
-              <span>사거리 +{hud.upgradeLevels.attackReach}</span>
-            </div>
-          </section>
+        <aside className="play-side-column play-side-column-desktop">
+          <BuildPanel hud={hud} />
         </aside>
       </div>
 

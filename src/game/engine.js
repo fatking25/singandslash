@@ -280,6 +280,21 @@ function normalize(x, y) {
   return { x: x / length, y: y / length };
 }
 
+function drawRoundedRect(ctx, x, y, width, height, radius) {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + safeRadius, y);
+  ctx.lineTo(x + width - safeRadius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  ctx.lineTo(x + width, y + height - safeRadius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  ctx.lineTo(x + safeRadius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  ctx.lineTo(x, y + safeRadius);
+  ctx.quadraticCurveTo(x, y, x + safeRadius, y);
+  ctx.closePath();
+}
+
 function angleToVector(angle) {
   return {
     x: Math.cos(angle),
@@ -577,6 +592,10 @@ export class GameEngine {
     };
 
     this.keys = new Set();
+    this.moveInput = {
+      x: 0,
+      y: 0,
+    };
     this.enemies = [];
     this.projectiles = [];
     this.pickups = [];
@@ -627,6 +646,7 @@ export class GameEngine {
     window.cancelAnimationFrame(this.rafId);
     window.removeEventListener('keydown', this.handleKeyDown);
     window.removeEventListener('keyup', this.handleKeyUp);
+    this.clearMoveInput();
   }
 
   handleKeyDown(event) {
@@ -678,6 +698,15 @@ export class GameEngine {
     }
 
     this.keys.delete(key);
+  }
+
+  setMoveInput(x, y) {
+    this.moveInput.x = clamp(x, -1, 1);
+    this.moveInput.y = clamp(y, -1, 1);
+  }
+
+  clearMoveInput() {
+    this.setMoveInput(0, 0);
   }
 
   clearAllEnemiesCheat() {
@@ -843,6 +872,9 @@ export class GameEngine {
     if (this.keys.has('d') || this.keys.has('arrowright')) {
       moveX += 1;
     }
+
+    moveX += this.moveInput.x;
+    moveY += this.moveInput.y;
 
     if (moveX !== 0 || moveY !== 0) {
       const direction = normalize(moveX, moveY);
@@ -2032,6 +2064,7 @@ export class GameEngine {
 
     this.isPaused = true;
     this.keys.clear();
+    this.clearMoveInput();
     this.emitState(true);
   }
 
@@ -2126,6 +2159,8 @@ export class GameEngine {
     }
 
     this.isOver = true;
+    this.keys.clear();
+    this.clearMoveInput();
     this.emitState(true);
     this.onGameOver({
       kills: this.kills,
@@ -2264,6 +2299,8 @@ export class GameEngine {
     const blinking =
       this.player.invulnerableTimer > 0 &&
       Math.floor(this.player.invulnerableTimer * 12) % 2 === 0;
+    const healthRate =
+      this.player.maxHp > 0 ? this.player.hp / this.player.maxHp : 0;
 
     ctx.save();
     ctx.translate(this.player.x, this.player.y);
@@ -2274,10 +2311,21 @@ export class GameEngine {
     ctx.ellipse(0, this.player.radius + 13, 20, 9, 0, 0, Math.PI * 2);
     ctx.fill();
 
+    ctx.fillStyle = 'rgba(255, 196, 109, 0.16)';
+    ctx.beginPath();
+    ctx.arc(0, 0, this.player.radius + 10, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.fillStyle = blinking ? '#fff6d5' : '#ff962f';
     ctx.beginPath();
     ctx.arc(0, 0, this.player.radius, 0, Math.PI * 2);
     ctx.fill();
+
+    ctx.strokeStyle = 'rgba(255, 245, 214, 0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, this.player.radius - 0.5, 0, Math.PI * 2);
+    ctx.stroke();
 
     ctx.strokeStyle = '#f77014';
     ctx.lineWidth = 3;
@@ -2313,6 +2361,36 @@ export class GameEngine {
       ctx.stroke();
     }
 
+    ctx.restore();
+
+    const barWidth = 54;
+    const barHeight = 8;
+    const barX = this.player.x - barWidth / 2;
+    const barY = this.player.y - this.player.radius - 34;
+    const fillWidth = Math.max(0, barWidth * healthRate);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(8, 14, 10, 0.5)';
+    drawRoundedRect(ctx, barX - 4, barY - 4, barWidth + 8, barHeight + 8, 8);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    drawRoundedRect(ctx, barX, barY, barWidth, barHeight, 999);
+    ctx.fill();
+
+    if (fillWidth > 0) {
+      ctx.shadowColor = healthRate > 0.4 ? 'rgba(255, 182, 84, 0.45)' : 'rgba(255, 106, 82, 0.52)';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = healthRate > 0.4 ? '#ffb95a' : '#ff7e57';
+      drawRoundedRect(ctx, barX, barY, fillWidth, barHeight, 999);
+      ctx.fill();
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255, 240, 213, 0.2)';
+    ctx.lineWidth = 1;
+    drawRoundedRect(ctx, barX, barY, barWidth, barHeight, 999);
+    ctx.stroke();
     ctx.restore();
   }
 

@@ -48,6 +48,7 @@ export default function StartScreen({ bestRecord, onStart }) {
           <ul className="record-lines">
             <li>이동: WASD 또는 방향키</li>
             <li>공격: 자동공격</li>
+            <li>모바일: 왼쪽 하단 스틱 드래그</li>
             <li>ESC: 일시정지 메뉴</li>
           </ul>
         </section>

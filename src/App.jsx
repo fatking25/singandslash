@@ -210,11 +210,12 @@ export default function App() {
   );
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${screen === 'playing' ? ' app-shell-playing' : ''}`}>
       <div className="app-background app-background-top" />
       <div className="app-background app-background-bottom" />
 
       <AudioControls
+        screen={screen}
         bgmVolume={bgmVolume}
         sfxVolume={sfxVolume}
         onBgmDown={() => changeBgmVolume(-0.1)}

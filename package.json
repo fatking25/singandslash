@@ -2,7 +2,12 @@
   "name": "dding-and-slash",
   "private": true,
   "version": "1.0.0",
-  "homepage": "https://fatking25.github.io/singandslash",
+  "description": "귀여운 하드코어 핵앤슬래시 생존 게임",
+  "homepage": "https://fatking25.github.io/singandslash/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fatking25/singandslash.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
